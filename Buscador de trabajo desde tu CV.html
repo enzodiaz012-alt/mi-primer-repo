@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Buscador de trabajo desde tu CV</title>
+<style>
+:root{--bg:#f3f6f8;--card:#fff;--ink:#14232e;--mute:#5d6f7c;--line:#dbe3e8;--main:#0d6e8a;--soft:#e0f1f6;--warn:#fff4d6;--wl:#e2b23b}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1a21;--card:#17252e;--ink:#eaf2f6;--mute:#9db1bd;--line:#2a3d49;--main:#5cc3de;--soft:#1b3a46;--warn:#3a3016;--wl:#c9a038}}
+:root[data-theme="dark"]{--bg:#0f1a21;--card:#17252e;--ink:#eaf2f6;--mute:#9db1bd;--line:#2a3d49;--main:#5cc3de;--soft:#1b3a46;--warn:#3a3016;--wl:#c9a038}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*:before,*:after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.5}
+main{max-width:860px;margin:0 auto;padding:18px 14px 48px}
+h1{font-size:clamp(1.6rem,5vw,2.2rem);margin:6px 0 4px;letter-spacing:-.02em}
+.sub{color:var(--mute);margin:0 0 14px}
+.note{background:var(--warn);border-left:4px solid var(--wl);border-radius:8px;padding:10px 14px;font-size:.9rem;margin-bottom:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+.card h2{font-size:1.05rem;margin:0 0 4px}
+.card .d{color:var(--mute);font-size:.88rem;margin:0 0 10px}
+label{display:block;font-size:.85rem;color:var(--mute);margin:10px 0 4px}
+input,select,textarea{width:100%;font:inherit;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+textarea{min-height:150px;resize:vertical}
+input:focus,select:focus,textarea:focus,button:focus-visible,a:focus-visible{outline:2px solid var(--main);outline-offset:1px}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
+button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--main);background:var(--main);color:#fff;padding:9px 16px;font-weight:600;margin-top:10px}
+button.sec{background:transparent;color:var(--main)}
+@media (prefers-color-scheme:dark){button{color:#07222b}button.sec{color:var(--main)}}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.chip{margin:0;padding:5px 11px;border-radius:99px;font-size:.88rem;font-weight:500;background:transparent;color:var(--ink);border:1px solid var(--line)}
+.chip.on{background:var(--soft);border-color:var(--main);color:var(--ink)}
+.links{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:8px}
+.links a{display:block;text-align:center;padding:10px;border:1px solid var(--main);border-radius:8px;color:var(--main);text-decoration:none;font-weight:600}
+.links a:hover{background:var(--soft)}
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.9rem;min-width:520px;margin-top:10px}
+th,td{padding:7px 6px;border-bottom:1px solid var(--line);text-align:left}
+th{color:var(--mute);font-size:.8rem}
+td select{padding:4px 6px}
+td button{margin:0;padding:3px 9px;font-size:.8rem}
+.empty{color:var(--mute);font-size:.9rem}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+</head>
+<body>
+<main>
+<h1>Buscador de trabajo desde tu CV</h1>
+<p class="sub">Pegá tu CV, y la herramienta detecta tus habilidades, te arma las búsquedas en cada plataforma y te prepara el mensaje de postulación.</p>
+<div class="note"><strong>Por qué no envía solo:</strong> LinkedIn, Computrabajo, Bumeran e Indeed prohíben las postulaciones automáticas y pueden suspender tu cuenta. Además, las empresas valoran más los envíos personalizados. Acá hacés cada postulación en unos minutos, con todo ya preparado.</div>
+
+<section class="card">
+<h2>1. Tu CV</h2>
+<p class="d">Subí tu CV en PDF o Word (.docx), o pegá el texto abajo. El archivo se lee en tu navegador y no se envía a ningún lado.</p>
+<label for="file">Subir archivo</label>
+<input id="file" type="file" accept=".pdf,.docx,.txt">
+<div id="fst" class="empty" aria-live="polite"></div>
+<label for="cv">O pegá el texto</label>
+<textarea id="cv" placeholder="Pegá acá el texto de tu currículum..."></textarea>
+<button id="go">Analizar mi CV</button>
+</section>
+
+<section class="card">
+<h2>2. Lo que detecté y qué buscar</h2>
+<p class="d">Tocá las habilidades para activarlas o desactivarlas. Elegí un puesto sugerido o escribí el tuyo.</p>
+<div id="skills" class="chips"><span class="empty">Todavía no analizaste tu CV.</span></div>
+<div class="row"><div><label for="nuevo">Agregar habilidad</label><input id="nuevo" placeholder="Escribila y apretá Enter"></div></div>
+<label>Puestos sugeridos</label>
+<div id="roles" class="chips"><span class="empty">Aparecen después de analizar.</span></div>
+<div class="row">
+<div><label for="puesto">Puesto a buscar</label><input id="puesto" placeholder="Ej: analista de datos"></div>
+<div><label for="nivel">Nivel</label><select id="nivel"><option value="">Cualquiera</option><option>junior</option><option>pasante</option><option>trainee</option><option>semi senior</option></select></div>
+<div><label for="modal">Modalidad</label><select id="modal"><option value="">Cualquiera</option><option value="remoto">Remoto</option></select></div>
+<div><label for="loc">Ubicación</label><input id="loc" value="Buenos Aires, Argentina"></div>
+</div>
+</section>
+
+<section class="card">
+<h2>3. Buscar en las plataformas</h2>
+<p class="d">Cada botón abre la búsqueda ya armada en una pestaña nueva. Si alguna página no filtra bien, usá las palabras que se muestran abajo en su buscador.</p>
+<div id="q" class="empty"></div>
+<div id="links" class="links"></div>
+<label>Búsquedas por habilidad (LinkedIn)</label>
+<div id="slinks" class="links"></div>
+</section>
+
+<section class="card">
+<h2>4. Mensaje de postulación</h2>
+<p class="d">Se arma con tus habilidades activas. Editalo para cada empresa antes de enviarlo.</p>
+<div class="row">
+<div><label for="nom">Tu nombre</label><input id="nom" placeholder="Nombre y apellido"></div>
+<div><label for="emp">Empresa</label><input id="emp" placeholder="Opcional"></div>
+</div>
+<button id="gen">Generar mensaje</button>
+<textarea id="carta" style="margin-top:10px" placeholder="Acá aparece el mensaje..."></textarea>
+<button id="copy" class="sec">Copiar mensaje</button> <span id="cok" class="empty"></span>
+</section>
+
+<section class="card">
+<h2>5. Seguimiento de postulaciones</h2>
+<p class="d">Anotá a dónde te postulaste para no repetir ni perder el hilo. Se guarda en este navegador.</p>
+<div class="row">
+<div><label for="te">Empresa</label><input id="te"></div>
+<div><label for="tp">Puesto</label><input id="tp"></div>
+<div><label for="tl">Plataforma</label><select id="tl"><option>LinkedIn</option><option>Computrabajo</option><option>Bumeran</option><option>Indeed</option><option>Mail directo</option><option>Otra</option></select></div>
+</div>
+<button id="add">Agregar</button>
+<div class="tw"><table><thead><tr><th>Fecha</th><th>Empresa</th><th>Puesto</th><th>Plataforma</th><th>Estado</th><th></th></tr></thead><tbody id="tb"></tbody></table></div>
+</section>
+</main>
+
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const enc=encodeURIComponent;
+const slug=s=>s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+const SK=[["Python","python"],["SQL","sql|mysql|postgres\\w*"],["Excel","excel"],["Power BI","power ?bi"],["Tableau","tableau"],["R","r"],["pandas","pandas"],["Estadística","estad[ií]stica"],["Machine Learning","machine learning|aprendizaje autom[aá]tico"],["Looker Studio","looker|data studio"],["Google Sheets","google sheets|hojas de c[aá]lculo"],["C / C++","c\\+\\+|c"],["JavaScript","javascript|js"],["Java","java"],["HTML/CSS","html|css"],["Git","git|github"],["Inglés","ingl[eé]s|english"],["Atención al cliente","atenci[oó]n al cliente"],["Ventas","ventas|vendedor\\w*"],["Gastronomía","gastronom[ií]a|cocina|cocinero"],["Administración","administraci[oó]n|administrativ\\w*"],["Contabilidad","contabilidad|contable"],["Logística","log[ií]stica"],["Marketing","marketing"],["Redes sociales","redes sociales|community manager"],["Trabajo en equipo","trabajo en equipo"]];
+const ROLES=[["Analista de datos",["Python","SQL","Excel","Power BI","Tableau","R","pandas","Estadística","Looker Studio","Google Sheets"]],["Analista junior de BI",["Power BI","Tableau","SQL","Looker Studio"]],["Desarrollador",["JavaScript","Java","C / C++","HTML/CSS","Git","Python"]],["Atención al cliente",["Atención al cliente","Ventas","Inglés"]],["Asistente administrativo",["Administración","Contabilidad","Excel","Google Sheets"]],["Ayudante de cocina",["Gastronomía"]],["Community manager",["Marketing","Redes sociales"]],["Auxiliar de logística",["Logística"]]];
+let found=[],sel=new Set();
+
+function analizar(){
+  const t=$("cv").value;
+  found=SK.filter(([l,r])=>new RegExp("(?<![a-z0-9+#])(?:"+r+")(?![a-z0-9+#])","i").test(t)).map(x=>x[0]);
+  sel=new Set(found);
+  const sc=ROLES.map(([n,k])=>[n,k.filter(x=>found.includes(x)).length]).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]).slice(0,4);
+  $("roles").innerHTML=sc.length?sc.map(([n])=>`<button class="chip" data-role="${esc(n)}">${esc(n)}</button>`).join(""):'<span class="empty">No encontré puestos sugeridos. Escribí el tuyo abajo.</span>';
+  if(sc.length&&!$("puesto").value)$("puesto").value=sc[0][0];
+  render();
+}
+function chips(){
+  $("skills").innerHTML=found.length?found.map(s=>`<button class="chip ${sel.has(s)?"on":""}" data-sk="${esc(s)}">${esc(s)}</button>`).join(""):'<span class="empty">No encontré habilidades conocidas. Agregá las tuyas abajo.</span>';
+}
+function render(){
+  chips();
+  const p=$("puesto").value.trim(),niv=$("nivel").value,rem=$("modal").value==="remoto",loc=$("loc").value.trim();
+  const q=[p,niv,rem?"remoto":""].filter(Boolean).join(" ");
+  if(!p){$("q").textContent="Escribí un puesto para generar las búsquedas.";$("links").innerHTML="";$("slinks").innerHTML="";return}
+  $("q").innerHTML="Palabras de búsqueda: <strong>"+esc(q)+"</strong>"+(loc?" · "+esc(loc):"");
+  const L=[["LinkedIn",`https://www.linkedin.com/jobs/search/?keywords=${enc(q)}&location=${enc(loc)}${rem?"&f_WT=2":""}`],
+   ["Computrabajo",`https://ar.computrabajo.com/trabajo-de-${slug(q)}`],
+   ["Bumeran",`https://www.bumeran.com.ar/empleos-busqueda-${slug(q)}.html`],
+   ["Indeed",`https://ar.indeed.com/jobs?q=${enc(q)}&l=${enc(loc)}`],
+   ["Google Empleos",`https://www.google.com/search?q=${enc(q+" empleo "+loc)}&ibp=htl;jobs`]];
+  $("links").innerHTML=L.map(([n,u])=>`<a href="${u}" target="_blank" rel="noopener">${n}</a>`).join("");
+  const S=[...sel].slice(0,6);
+  $("slinks").innerHTML=S.length?S.map(s=>`<a href="https://www.linkedin.com/jobs/search/?keywords=${enc((s+" "+niv).trim())}&location=${enc(loc)}" target="_blank" rel="noopener">${esc(s)}</a>`).join(""):'<span class="empty">Activá alguna habilidad para ver estas búsquedas.</span>';
+}
+$("file").onchange=async e=>{
+  const f=e.target.files[0];if(!f)return;const st=$("fst");const n=f.name.toLowerCase();
+  st.textContent="Leyendo el archivo...";
+  try{
+    let txt="";
+    if(n.endsWith(".pdf")){
+      if(!window.pdfjsLib)throw new Error("lib");
+      pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+      const pdf=await pdfjsLib.getDocument({data:await f.arrayBuffer()}).promise;
+      for(let i=1;i<=pdf.numPages;i++){const pg=await pdf.getPage(i);const c=await pg.getTextContent();txt+=c.items.map(x=>x.str+(x.hasEOL?"\n":" ")).join("")+"\n"}
+    }else if(n.endsWith(".docx")){
+      if(!window.mammoth)throw new Error("lib");
+      txt=(await mammoth.extractRawText({arrayBuffer:await f.arrayBuffer()})).value;
+    }else if(n.endsWith(".txt")){txt=await f.text()}
+    else{st.textContent="Formato no compatible. Usá PDF, Word (.docx) o .txt. Si tu CV es .doc, guardalo como .docx.";e.target.value="";return}
+    txt=txt.trim();
+    if(txt.length<30){st.textContent="No pude sacar texto del archivo (puede ser un PDF escaneado como imagen). Pegá el texto a mano.";e.target.value="";return}
+    $("cv").value=txt;st.textContent="Listo: "+f.name;analizar();
+  }catch(err){st.textContent="No pude leer el archivo. Probá con otro o pegá el texto a mano."}
+  e.target.value="";
+};
+$("go").onclick=analizar;
+$("skills").onclick=e=>{const s=e.target.dataset.sk;if(!s)return;sel.has(s)?sel.delete(s):sel.add(s);render()};
+$("roles").onclick=e=>{const r=e.target.dataset.role;if(!r)return;$("puesto").value=r;render()};
+$("nuevo").onkeydown=e=>{if(e.key!=="Enter")return;const v=e.target.value.trim();if(!v)return;if(!found.includes(v))found.push(v);sel.add(v);e.target.value="";render()};
+["puesto","nivel","modal","loc"].forEach(i=>{$(i).oninput=render;$(i).onchange=render});
+
+$("gen").onclick=()=>{
+  const n=$("nom").value.trim()||"[Tu nombre]",e=$("emp").value.trim(),p=$("puesto").value.trim()||"[puesto]";
+  const h=[...sel].filter(s=>!["Trabajo en equipo"].includes(s)).slice(0,5);
+  const hs=h.length?h.slice(0,-1).join(", ")+(h.length>1?" y ":"")+h[h.length-1]:"[tus habilidades principales]";
+  $("carta").value=`Hola${e?", equipo de "+e:""}:\n\nMe pongo en contacto para postularme a la búsqueda de ${p}${e?" en "+e:""}. Soy ${n} y cuento con conocimientos y práctica en ${hs}.\n\nMe interesa mucho esta oportunidad porque busco seguir creciendo en el área y aportar con compromiso, ganas de aprender y capacidad para resolver problemas. [Agregá acá una frase sobre por qué te interesa esta empresa o este puesto.]\n\nAdjunto mi CV con el detalle de mi formación y experiencia. Quedo a disposición para una entrevista.\n\nSaludos cordiales,\n${n}`;
+};
+$("copy").onclick=async()=>{
+  const t=$("carta");t.select();let ok=false;
+  try{await navigator.clipboard.writeText(t.value);ok=true}catch(e){try{ok=document.execCommand("copy")}catch(_){}}
+  $("cok").textContent=ok?"¡Copiado!":"No se pudo copiar, seleccioná el texto y copialo.";setTimeout(()=>$("cok").textContent="",2500);
+};
+
+let trk=[];
+try{trk=JSON.parse(localStorage.getItem("trk")||"[]")}catch(e){}
+const save=()=>{try{localStorage.setItem("trk",JSON.stringify(trk))}catch(e){}};
+const ESTADOS=["Enviada","En proceso","Entrevista","Oferta","Rechazada"];
+function tabla(){
+  $("tb").innerHTML=trk.length?trk.map((r,i)=>`<tr><td>${esc(r.f)}</td><td>${esc(r.e)}</td><td>${esc(r.p)}</td><td>${esc(r.l)}</td><td><select data-i="${i}">${ESTADOS.map(s=>`<option${s===r.s?" selected":""}>${s}</option>`).join("")}</select></td><td><button class="sec" data-d="${i}">Borrar</button></td></tr>`).join(""):'<tr><td colspan="6" class="empty">Todavía no cargaste postulaciones.</td></tr>';
+}
+$("add").onclick=()=>{
+  const e=$("te").value.trim(),p=$("tp").value.trim()||$("puesto").value.trim();
+  if(!e&&!p)return;
+  trk.unshift({f:new Date().toLocaleDateString("es-AR"),e,p,l:$("tl").value,s:"Enviada"});save();tabla();$("te").value="";$("tp").value="";
+};
+$("tb").onclick=e=>{const d=e.target.dataset.d;if(d===undefined)return;trk.splice(+d,1);save();tabla()};
+$("tb").onchange=e=>{const i=e.target.dataset.i;if(i===undefined)return;trk[+i].s=e.target.value;save()};
+tabla();render();
+</script>
+</body>
+</html>
